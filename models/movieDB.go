@@ -38,10 +38,10 @@ func (m *DBModel) GetOneMovie(id int) (*Movie, error) {
 
 	// get genres, if any
 	query = `SELECT 
-				mg.id, mg.movie_id, mg.genre_id, g.genre_name
+				 g.genre_name
 			 FROM 
-			 	movies_genres mg
-			 LEFT JOIN genres g ON mg.genre_id = g.id
+			 	genres g
+			 LEFT JOIN movies_genres mg ON mg.genre_id = g.id
 			 WHERE 
 			 	mg.movie_id = $1`
 	genreRows, err := m.DB.QueryContext(ctx, query, id)
@@ -50,20 +50,19 @@ func (m *DBModel) GetOneMovie(id int) (*Movie, error) {
 	}
 	defer genreRows.Close()
 
-	var genres []MovieGenre
+	genres := make(map[int]string)
+	i := 1 // Init genre id
 	for genreRows.Next() {
 		var mg MovieGenre
 		err := genreRows.Scan(
-			&mg.ID,
-			&mg.MovieID,
-			&mg.GenreID,
 			&mg.Genre.GenreName,
 		)
-
 		if err != nil {
 			return nil, err
 		}
-		genres = append(genres, mg)
+
+		genres[i] = mg.Genre.GenreName
+		i += 1
 	}
 
 	movie.MovieGenre = genres
