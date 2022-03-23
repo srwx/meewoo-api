@@ -36,6 +36,38 @@ func (m *DBModel) GetOneMovie(id int) (*Movie, error) {
 		return nil, err
 	}
 
+	// get genres, if any
+	query = `SELECT 
+				mg.id, mg.movie_id, mg.genre_id, g.genre_name
+			 FROM 
+			 	movies_genres mg
+			 LEFT JOIN genres g ON mg.genre_id = g.id
+			 WHERE 
+			 	mg.movie_id = $1`
+	genreRows, err := m.DB.QueryContext(ctx, query, id)
+	if err != nil {
+		return nil, err
+	}
+	defer genreRows.Close()
+
+	var genres []MovieGenre
+	for genreRows.Next() {
+		var mg MovieGenre
+		err := genreRows.Scan(
+			&mg.ID,
+			&mg.MovieID,
+			&mg.GenreID,
+			&mg.Genre.GenreName,
+		)
+
+		if err != nil {
+			return nil, err
+		}
+		genres = append(genres, mg)
+	}
+
+	movie.MovieGenre = genres
+
 	return &movie, nil
 }
 
