@@ -1,14 +1,13 @@
 package main
 
 import (
-	"context"
-	"database/sql"
 	"flag"
 	"fmt"
 	"log"
 	"net/http"
 	"os"
-	"time"
+
+	"meewoo-api/models"
 
 	_ "github.com/lib/pq"
 )
@@ -32,28 +31,7 @@ type AppStatus struct {
 type application struct {
 	config config
 	logger *log.Logger
-}
-
-/*
-** *sql.DB is connection pool (use to connect to db)
- */
-func openDB(conf config) (*sql.DB, error) {
-	db, err := sql.Open("postgres", conf.db.connectionString)
-
-	if err != nil {
-		return nil, err
-	}
-
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	/* PingContext verifies the connection to the database is still alive. */
-	err = db.PingContext(ctx)
-	if err != nil {
-		return nil, err
-	}
-
-	return db, nil
+	models models.Models
 }
 
 func main() {
@@ -67,7 +45,7 @@ func main() {
 	logger := log.New(os.Stdout, "", log.Ldate|log.Ltime)
 
 	/* Connection to db */
-	db, err := openDB(conf)
+	db, err := openDB(conf) // openDB() is function in openDB.go
 	if err != nil {
 		logger.Fatal(err)
 	}
@@ -76,6 +54,7 @@ func main() {
 	app := application{
 		config: conf,
 		logger: logger,
+		models: models.NewModels(db),
 	}
 
 	/* Create server */
