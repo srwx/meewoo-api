@@ -7,6 +7,7 @@ func (app *application) routes() *httprouter.Router {
 
 	router.GET("/status", app.statusHandler)
 	router.GET("/movie/:id", app.getOneMovie)
+	router.GET("/movies", app.getAllMovies)
 
 	return router
 }

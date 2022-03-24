@@ -2,7 +2,6 @@ package main
 
 import (
 	"errors"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -22,8 +21,18 @@ func (app *application) getOneMovie(w http.ResponseWriter, r *http.Request, ps h
 	movie, err := app.models.DB.GetOneMovie(id)
 
 	if err != nil {
-		log.Println(err)
+		app.logger.Println(err)
 	}
 
 	app.writeJSON(w, http.StatusOK, movie, "movie")
+}
+
+// GET /movies
+func (app *application) getAllMovies(w http.ResponseWriter, r *http.Request, _ httprouter.Params) {
+	movies, err := app.models.DB.GetAllMovies()
+	if err != nil {
+		app.logger.Panicln(err)
+	}
+
+	app.writeJSON(w, http.StatusOK, movies, "movies")
 }
